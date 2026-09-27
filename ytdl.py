@@ -18,8 +18,8 @@ try:
     import yt_dlp
 except ImportError:
     sys.exit(
-        "Не найдена библиотека yt-dlp.\n"
-        "Установите её командой:\n"
+        "yt-dlp library not found.\n"
+        "Install it with:\n"
         "    python3 -m pip install -U yt-dlp"
     )
 
@@ -47,12 +47,12 @@ BUNDLED_FFMPEG = get_bundled_ffmpeg()
 
 def human_size(num_bytes):
     if not num_bytes:
-        return "—"
-    for unit in ("Б", "КБ", "МБ", "ГБ"):
+        return "-"
+    for unit in ("B", "KB", "MB", "GB"):
         if num_bytes < 1024:
             return f"{num_bytes:.0f}{unit}"
         num_bytes /= 1024
-    return f"{num_bytes:.1f}ТБ"
+    return f"{num_bytes:.1f}TB"
 
 
 def list_formats(info):
@@ -66,11 +66,11 @@ def list_formats(info):
         has_audio = acodec != "none"
 
         if has_video and has_audio:
-            kind = "видео+аудио"
+            kind = "video+audio"
         elif has_video:
-            kind = "только видео"
+            kind = "video only"
         elif has_audio:
-            kind = "только аудио"
+            kind = "audio only"
         else:
             continue
 
@@ -82,7 +82,7 @@ def list_formats(info):
         size = f.get("filesize") or f.get("filesize_approx")
         abr = f.get("abr")
 
-        desc = f'{f["format_id"]:>8}  {ext:<5} {kind:<14} {res or "":<8}'
+        desc = f'{f["format_id"]:>8}  {ext:<5} {kind:<12} {res or "":<8}'
         if fps:
             desc += f'{fps:>4}fps '
         else:
@@ -109,16 +109,16 @@ def choose_format_interactively(info):
     if not rows:
         return "best"
 
-    print("\nДоступные форматы:\n")
-    print(f'{"ID":>8}  {"EXT":<5} {"ТИП":<14} {"РАЗР.":<8}{"":7}{"РАЗМЕР":>8}')
+    print("\nAvailable formats:\n")
+    print(f'{"ID":>8}  {"EXT":<5} {"TYPE":<12} {"RES.":<8}{"":7}{"SIZE":>8}')
     print("-" * 60)
     for _, desc in rows:
         print(desc)
     print("-" * 60)
-    print("  best      — лучшее видео+аудио автоматически")
-    print("  bestaudio — лучшее аудио (можно сконвертировать в mp3)")
+    print("  best      - best video+audio automatically")
+    print("  bestaudio - best audio (can be converted to mp3)")
 
-    choice = input("\nВведите ID формата (или 'best' / 'bestaudio'): ").strip()
+    choice = input("\nEnter format ID (or 'best' / 'bestaudio'): ").strip()
     return choice or "best"
 
 
@@ -163,49 +163,49 @@ def progress_hook(d):
         percent = d.get("_percent_str", "").strip()
         speed = d.get("_speed_str", "").strip()
         eta = d.get("_eta_str", "").strip()
-        sys.stdout.write(f"\r  Загрузка: {percent}  скорость: {speed}  осталось: {eta}   ")
+        sys.stdout.write(f"\r  Downloading: {percent}  speed: {speed}  eta: {eta}   ")
         sys.stdout.flush()
     elif d["status"] == "finished":
-        print("\n  Загрузка завершена, идёт обработка (слияние/конвертация)...")
+        print("\n  Download finished, processing (merge/convert)...")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Скачивание видео с YouTube с выбором формата и разрешения."
+        description="Download a YouTube video with format and resolution selection."
     )
-    parser.add_argument("url", help="Ссылка на видео")
+    parser.add_argument("url", help="Video link")
     parser.add_argument(
-        "-o", "--output", default=".", help="Папка для сохранения (по умолчанию текущая)"
-    )
-    parser.add_argument(
-        "--best", action="store_true", help="Скачать лучшее качество без выбора формата"
+        "-o", "--output", default=".", help="Output folder (default: current folder)"
     )
     parser.add_argument(
-        "--audio-only", action="store_true", help="Скачать только аудио (mp3)"
+        "--best", action="store_true", help="Download best quality without prompting"
     )
     parser.add_argument(
-        "-f", "--format", default=None, help="ID формата напрямую (пропустить выбор)"
+        "--audio-only", action="store_true", help="Download audio only (mp3)"
+    )
+    parser.add_argument(
+        "-f", "--format", default=None, help="Format ID directly (skip the prompt)"
     )
     args = parser.parse_args()
 
     Path(args.output).expanduser().mkdir(parents=True, exist_ok=True)
 
-    print(f"Получаю информацию о видео...\n{args.url}\n")
+    print(f"Fetching video info...\n{args.url}\n")
 
     probe_opts = {"quiet": True, "no_warnings": True, "noplaylist": True}
     try:
         with yt_dlp.YoutubeDL(probe_opts) as ydl:
             info = ydl.extract_info(args.url, download=False)
     except yt_dlp.utils.DownloadError as e:
-        sys.exit(f"Не удалось получить информацию о видео: {e}")
+        sys.exit(f"Could not fetch video info: {e}")
 
-    title = info.get("title", "неизвестно")
+    title = info.get("title", "unknown")
     duration = info.get("duration")
     duration_str = (
-        f'{duration // 60}:{duration % 60:02d}' if duration else "—"
+        f'{duration // 60}:{duration % 60:02d}' if duration else "-"
     )
-    print(f'Название: {title}')
-    print(f'Длительность: {duration_str}')
+    print(f'Title: {title}')
+    print(f'Duration: {duration_str}')
 
     if args.audio_only:
         format_selector = "bestaudio"
@@ -218,14 +218,14 @@ def main():
 
     ydl_opts = build_ydl_opts(args.output, format_selector, audio_only=args.audio_only)
 
-    print(f'\nНачинаю загрузку в: {Path(args.output).expanduser().resolve()}\n')
+    print(f'\nStarting download into: {Path(args.output).expanduser().resolve()}\n')
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([args.url])
     except yt_dlp.utils.DownloadError as e:
-        sys.exit(f"\nОшибка загрузки: {e}")
+        sys.exit(f"\nDownload error: {e}")
 
-    print("\nГотово.")
+    print("\nDone.")
 
 
 if __name__ == "__main__":

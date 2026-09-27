@@ -20,7 +20,7 @@ try:
     import yt_dlp
 except ImportError:
     raise SystemExit(
-        "Не найдена библиотека yt-dlp.\nУстановите: python3 -m pip install -U yt-dlp"
+        "yt-dlp library not found.\nInstall it: python3 -m pip install -U yt-dlp"
     )
 
 
@@ -50,12 +50,12 @@ ctk.set_default_color_theme("blue")
 
 def human_size(num_bytes):
     if not num_bytes:
-        return "—"
-    for unit in ("Б", "КБ", "МБ", "ГБ"):
+        return "-"
+    for unit in ("B", "KB", "MB", "GB"):
         if num_bytes < 1024:
             return f"{num_bytes:.0f}{unit}"
         num_bytes /= 1024
-    return f"{num_bytes:.1f}ТБ"
+    return f"{num_bytes:.1f}TB"
 
 
 class VideoOption:
@@ -99,7 +99,7 @@ def build_video_options(info):
         options.append(VideoOption(label, format_selector, "video"))
 
     if not options:
-        options.append(VideoOption("Лучшее доступное качество", "bestvideo+bestaudio/best", "video"))
+        options.append(VideoOption("Best available quality", "bestvideo+bestaudio/best", "video"))
     return options
 
 
@@ -118,11 +118,11 @@ def build_audio_options(info):
         seen_abr.add(abr)
         ext = f.get("ext", "")
         size = f.get("filesize") or f.get("filesize_approx")
-        label = f"{abr}kbps ({ext} → mp3, ~{human_size(size)})"
+        label = f"{abr}kbps ({ext} -> mp3, ~{human_size(size)})"
         options.append(VideoOption(label, f["format_id"], "audio"))
 
     if not options:
-        options.append(VideoOption("Лучшее доступное аудио → mp3", "bestaudio", "audio"))
+        options.append(VideoOption("Best available audio -> mp3", "bestaudio", "audio"))
     return options
 
 
@@ -130,7 +130,7 @@ class YtdlGUI(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("ytdl — загрузчик YouTube")
+        self.title("ytdl - YouTube downloader")
         self.geometry("640x520")
         self.minsize(560, 480)
 
@@ -151,12 +151,12 @@ class YtdlGUI(ctk.CTk):
 
         # URL input
         self.url_entry = ctk.CTkEntry(
-            self, placeholder_text="Вставьте ссылку на YouTube-видео сюда"
+            self, placeholder_text="Paste the YouTube video link here"
         )
         self.url_entry.pack(fill="x", **pad)
 
         self.fetch_btn = ctk.CTkButton(
-            self, text="Получить форматы", command=self._on_fetch_clicked
+            self, text="Fetch formats", command=self._on_fetch_clicked
         )
         self.fetch_btn.pack(**pad)
 
@@ -168,29 +168,29 @@ class YtdlGUI(ctk.CTk):
         mode_frame = ctk.CTkFrame(self, fg_color="transparent")
         mode_frame.pack(fill="x", **pad)
         ctk.CTkRadioButton(
-            mode_frame, text="Видео (+ аудио)", variable=self.mode_var,
+            mode_frame, text="Video (+ audio)", variable=self.mode_var,
             value="video", command=self._refresh_format_list
         ).pack(side="left", padx=(0, 20))
         ctk.CTkRadioButton(
-            mode_frame, text="Только аудио → mp3", variable=self.mode_var,
+            mode_frame, text="Audio only -> mp3", variable=self.mode_var,
             value="audio", command=self._refresh_format_list
         ).pack(side="left")
 
         # Format list
-        self.format_menu = ctk.CTkOptionMenu(self, values=["Сначала получите форматы"])
+        self.format_menu = ctk.CTkOptionMenu(self, values=["Fetch formats first"])
         self.format_menu.pack(fill="x", **pad)
         self.format_menu.configure(state="disabled")
 
         # Output directory
         out_frame = ctk.CTkFrame(self, fg_color="transparent")
         out_frame.pack(fill="x", **pad)
-        self.output_label = ctk.CTkLabel(out_frame, text=f"Папка: {self.output_dir}", anchor="w")
+        self.output_label = ctk.CTkLabel(out_frame, text=f"Folder: {self.output_dir}", anchor="w")
         self.output_label.pack(side="left", fill="x", expand=True)
-        ctk.CTkButton(out_frame, text="Выбрать...", width=90, command=self._choose_output_dir).pack(side="right")
+        ctk.CTkButton(out_frame, text="Choose...", width=90, command=self._choose_output_dir).pack(side="right")
 
         # Download button
         self.download_btn = ctk.CTkButton(
-            self, text="Скачать", command=self._on_download_clicked, state="disabled"
+            self, text="Download", command=self._on_download_clicked, state="disabled"
         )
         self.download_btn.pack(**pad)
 
@@ -199,7 +199,7 @@ class YtdlGUI(ctk.CTk):
         self.progress_bar.set(0)
         self.progress_bar.pack(fill="x", **pad)
 
-        self.status_label = ctk.CTkLabel(self, text="Готов к работе.", anchor="w")
+        self.status_label = ctk.CTkLabel(self, text="Ready.", anchor="w")
         self.status_label.pack(fill="x", **pad)
 
     # ---------- Actions ----------
@@ -208,18 +208,18 @@ class YtdlGUI(ctk.CTk):
         chosen = filedialog.askdirectory(initialdir=self.output_dir)
         if chosen:
             self.output_dir = chosen
-            self.output_label.configure(text=f"Папка: {self.output_dir}")
+            self.output_label.configure(text=f"Folder: {self.output_dir}")
 
     def _on_fetch_clicked(self):
         url = self.url_entry.get().strip()
         if not url:
-            messagebox.showwarning("Нет ссылки", "Вставьте ссылку на видео.")
+            messagebox.showwarning("No link", "Paste a video link first.")
             return
 
-        self.fetch_btn.configure(state="disabled", text="Получаю...")
+        self.fetch_btn.configure(state="disabled", text="Fetching...")
         self.download_btn.configure(state="disabled")
         self.format_menu.configure(state="disabled")
-        self.status_label.configure(text="Получаю информацию о видео...")
+        self.status_label.configure(text="Fetching video info...")
 
         threading.Thread(target=self._fetch_info_worker, args=(url,), daemon=True).start()
 
@@ -249,13 +249,13 @@ class YtdlGUI(ctk.CTk):
         options = self.video_options if self.mode_var.get() == "video" else self.audio_options
         chosen = next((o for o in options if str(o) == chosen_label), None)
         if chosen is None:
-            messagebox.showerror("Ошибка", "Выберите формат.")
+            messagebox.showerror("Error", "Please select a format.")
             return
 
         self.download_btn.configure(state="disabled")
         self.fetch_btn.configure(state="disabled")
         self.progress_bar.set(0)
-        self.status_label.configure(text="Начинаю загрузку...")
+        self.status_label.configure(text="Starting download...")
 
         threading.Thread(
             target=self._download_worker, args=(url, chosen), daemon=True
@@ -323,40 +323,40 @@ class YtdlGUI(ctk.CTk):
             self.info = info
             self.video_options = build_video_options(info)
             self.audio_options = build_audio_options(info)
-            title = info.get("title", "неизвестно")
+            title = info.get("title", "unknown")
             duration = info.get("duration")
-            duration_str = f"{duration // 60}:{duration % 60:02d}" if duration else "—"
-            self.title_label.configure(text=f"{title}\nДлительность: {duration_str}")
+            duration_str = f"{duration // 60}:{duration % 60:02d}" if duration else "-"
+            self.title_label.configure(text=f"{title}\nDuration: {duration_str}")
             self._refresh_format_list()
-            self.fetch_btn.configure(state="normal", text="Получить форматы")
+            self.fetch_btn.configure(state="normal", text="Fetch formats")
             self.download_btn.configure(state="normal")
-            self.status_label.configure(text="Форматы получены. Выберите нужный и нажмите «Скачать».")
+            self.status_label.configure(text="Formats fetched. Pick one and click Download.")
 
         elif kind == "info_error":
-            self.fetch_btn.configure(state="normal", text="Получить форматы")
-            self.status_label.configure(text="Ошибка получения информации.")
-            messagebox.showerror("Ошибка", f"Не удалось получить информацию о видео:\n{msg[1]}")
+            self.fetch_btn.configure(state="normal", text="Fetch formats")
+            self.status_label.configure(text="Error fetching info.")
+            messagebox.showerror("Error", f"Could not fetch video info:\n{msg[1]}")
 
         elif kind == "progress":
             fraction, speed = msg[1], msg[2]
             self.progress_bar.set(min(max(fraction, 0), 1))
-            self.status_label.configure(text=f"Загрузка... {fraction*100:.0f}%  ({speed})")
+            self.status_label.configure(text=f"Downloading... {fraction*100:.0f}%  ({speed})")
 
         elif kind == "processing":
-            self.status_label.configure(text="Обработка (слияние/конвертация в mp3)...")
+            self.status_label.configure(text="Processing (merging/converting to mp3)...")
 
         elif kind == "done":
             self.progress_bar.set(1)
-            self.status_label.configure(text="Готово! Файл сохранён.")
+            self.status_label.configure(text="Done! File saved.")
             self.download_btn.configure(state="normal")
             self.fetch_btn.configure(state="normal")
-            messagebox.showinfo("Готово", "Загрузка завершена.")
+            messagebox.showinfo("Done", "Download complete.")
 
         elif kind == "download_error":
             self.download_btn.configure(state="normal")
             self.fetch_btn.configure(state="normal")
-            self.status_label.configure(text="Ошибка загрузки.")
-            messagebox.showerror("Ошибка", f"Не удалось скачать:\n{msg[1]}")
+            self.status_label.configure(text="Download error.")
+            messagebox.showerror("Error", f"Could not download:\n{msg[1]}")
 
 
 if __name__ == "__main__":

@@ -1,38 +1,39 @@
 #!/usr/bin/env bash
 # Installs ytdl on macOS.
-# Installs Homebrew packages (python, ffmpeg) if needed and dependencies from requirements.txt,
-# then places the "ytdl" command in /usr/local/bin (or /opt/homebrew/bin on Apple Silicon).
+# Installs Homebrew packages (python, ffmpeg) if needed and dependencies from
+# requirements.txt, then places the "ytdl" command in /usr/local/bin (or
+# /opt/homebrew/bin on Apple Silicon).
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo "== Проверка Homebrew =="
+echo "== Checking Homebrew =="
 if ! command -v brew &> /dev/null; then
-    echo "Homebrew не найден. Установите его: https://brew.sh"
+    echo "Homebrew not found. Install it: https://brew.sh"
     exit 1
 fi
 
-echo "== Проверка ffmpeg (нужен для склейки видео/аудио и конвертации в mp3) =="
+echo "== Checking ffmpeg (needed for merging video/audio and mp3 conversion) =="
 if ! command -v ffmpeg &> /dev/null; then
-    echo "Устанавливаю ffmpeg..."
+    echo "Installing ffmpeg..."
     brew install ffmpeg
 else
-    echo "ffmpeg уже установлен."
+    echo "ffmpeg is already installed."
 fi
 
-echo "== Проверка python3 =="
+echo "== Checking python3 =="
 if ! command -v python3 &> /dev/null; then
-    echo "Устанавливаю python3..."
+    echo "Installing python3..."
     brew install python
 else
-    echo "python3 уже установлен."
+    echo "python3 is already installed."
 fi
 
-echo "== Установка зависимостей Python =="
+echo "== Installing Python dependencies =="
 python3 -m pip install --user -U -r "$SCRIPT_DIR/requirements.txt"
 
-echo "== Создание команды 'ytdl' =="
+echo "== Creating the 'ytdl' command =="
 BIN_DIR="/usr/local/bin"
 if [ -d "/opt/homebrew/bin" ]; then
     BIN_DIR="/opt/homebrew/bin"
@@ -53,10 +54,10 @@ fi
 chmod +x "$WRAPPER"
 
 echo ""
-echo "Готово! Теперь можно запускать из любой папки терминала:"
+echo "Done! You can now run this from any terminal window:"
 echo "    ytdl https://www.youtube.com/watch?v=..."
 echo ""
-echo "Примеры:"
-echo "    ytdl <ссылка> -o ~/Downloads"
-echo "    ytdl <ссылка> --best"
-echo "    ytdl <ссылка> --audio-only"
+echo "Examples:"
+echo "    ytdl <link> -o ~/Downloads"
+echo "    ytdl <link> --best"
+echo "    ytdl <link> --audio-only"

@@ -1,156 +1,129 @@
-# ytdl — загрузчик видео с YouTube
+# ytdl — YouTube video downloader
 
-Консольная утилита и графический интерфейс (CustomTkinter) для скачивания
-видео с YouTube с выбором разрешения, а также аудио с автоматической
-конвертацией в mp3. Работает поверх библиотеки `yt-dlp`.
+A command-line tool and a graphical interface (CustomTkinter) for downloading
+YouTube videos with resolution selection, plus audio with automatic
+conversion to mp3. Built on top of the `yt-dlp` library.
 
-## Содержимое папки
+## Folder contents
 
-| Файл                  | Назначение                                              |
-|-----------------------|----------------------------------------------------------|
-| `ytdl.py`             | Консольная версия                                        |
-| `ytdl_gui.py`         | Графическая версия (CustomTkinter)                       |
-| `requirements.txt`    | Python-зависимости (`yt-dlp`, `customtkinter`)            |
-| `install_macos.sh`    | Установщик для macOS (ffmpeg, python, зависимости, PATH) |
-| `install_windows.ps1` | Установщик для Windows (ffmpeg, python, зависимости, PATH)|
-| `build_exe.bat`       | Собирает автономный `ytdl_gui.exe` на Windows (см. ниже)  |
-| `build_app_macos.sh`  | Собирает автономный `ytdl_gui.app` на macOS (см. ниже)    |
+| File                  | Purpose                                                     |
+|-----------------------|--------------------------------------------------------------|
+| `ytdl.py`             | Command-line version                                        |
+| `ytdl_gui.py`         | Graphical version (CustomTkinter)                            |
+| `requirements.txt`    | Python dependencies (`yt-dlp`, `customtkinter`)               |
+| `install_macos.sh`    | macOS installer (ffmpeg, python, dependencies, PATH)          |
+| `install_windows.ps1` | Windows installer (ffmpeg, python, dependencies, PATH)        |
+| `build_exe.bat`       | Builds a standalone `ytdl_gui.exe` on Windows (see below)     |
 
-## Быстрая установка
+## Quick install
 
 ### macOS
 
-1. Открыть Терминал в этой папке.
-2. Выполнить:
+1. Open Terminal in this folder.
+2. Run:
    ```bash
    chmod +x install_macos.sh
    ./install_macos.sh
    ```
-3. Установщик поставит `ffmpeg` и `python3` через Homebrew (если их ещё нет)
-   и добавит команду `ytdl` в PATH.
+3. The installer will set up `ffmpeg` and `python3` via Homebrew (if
+   missing) and add the `ytdl` command to your PATH.
 
 ### Windows
 
-1. Открыть PowerShell в этой папке.
-2. Выполнить:
+1. Open PowerShell in this folder.
+2. Run:
    ```powershell
    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
    .\install_windows.ps1
    ```
-3. Установщик поставит Python и ffmpeg через `winget` (если их ещё нет) и
-   добавит команду `ytdl` в PATH пользователя. Если Python/ffmpeg только что
-   установились — закройте и откройте PowerShell заново, затем запустите
-   скрипт ещё раз.
+3. The installer will set up Python and ffmpeg via `winget` (if missing) and
+   add the `ytdl` command to your user PATH. If Python/ffmpeg was just
+   installed, close and reopen PowerShell, then run the script again.
 
-### Windows — вариант без PowerShell и команд: готовый .exe со встроенным ffmpeg
+### Windows — no PowerShell, no commands: a standalone .exe with bundled ffmpeg
 
-Если не хочется вообще открывать PowerShell и отдельно ставить ffmpeg:
+If you'd rather not open PowerShell or install ffmpeg separately at all:
 
-1. Один раз (у вас или у того, кто передаёт программу) — дважды кликнуть
-   `build_exe.bat` из папки с `ytdl_gui.py`. Он сам:
-   - поставит `pyinstaller`,
-   - скачает `ffmpeg.exe`, если его нет рядом,
-   - соберёт `ytdl_gui.exe` **со встроенным ffmpeg внутри**.
-2. Дальше `ytdl_gui.exe` — самодостаточная программа: копируется на любой
-   Windows-компьютер и запускается двойным кликом. Python, PowerShell и
-   отдельная установка ffmpeg не нужны вообще.
+1. Once (you or whoever hands the program over) — double-click
+   `build_exe.bat` from the folder containing `ytdl_gui.py`. It will:
+   - install `pyinstaller`,
+   - download `ffmpeg.exe` if it isn't already there,
+   - build `ytdl_gui.exe` **with ffmpeg bundled inside**.
+2. From then on, `ytdl_gui.exe` is a self-contained program: copy it to any
+   Windows computer and run it with a double click. No Python, no
+   PowerShell, no separate ffmpeg install needed at all.
 
-Сборка `.exe` возможна только на самой Windows (PyInstaller не умеет
-собирать exe с Linux/macOS), поэтому `build_exe.bat` нужно запускать именно
-на Windows-машине — но сделать это нужно один раз, готовый `.exe` потом
-можно свободно копировать и раздавать без Python и ffmpeg.
+Building the `.exe` only works on Windows itself (PyInstaller can't
+cross-compile a Windows exe from Linux/macOS), so `build_exe.bat` must be
+run on a Windows machine — but only once; the resulting `.exe` can then be
+freely copied and shared without Python or ffmpeg.
 
-Если автоматическое скачивание ffmpeg не сработает (например, нет
-интернета или заблокирован сайт) — скрипт подскажет, откуда скачать
-`ffmpeg.exe` вручную и куда положить, после чего просто запустить
-`build_exe.bat` ещё раз.
+If the automatic ffmpeg download fails (no internet, blocked site, etc.),
+the script will tell you where to download `ffmpeg.exe` manually and where
+to place it, then just run `build_exe.bat` again.
 
-### macOS — готовое приложение .app со встроенным ffmpeg
-
-Аналогично Windows: `.exe` на Mac не запустится (это разные форматы
-исполняемых файлов), для macOS нужна отдельная сборка:
-
-1. В Терминале, из папки со всеми файлами:
-   ```bash
-   chmod +x build_app_macos.sh
-   ./build_app_macos.sh
-   ```
-2. Скрипт поставит `python3`, `pyinstaller`, `ffmpeg` (если их нет) и
-   соберёт `ytdl_gui.app` со встроенным ffmpeg внутрь — Python и Терминал
-   пользователю дальше не нужны, приложение запускается двойным кликом.
-3. **Про Gatekeeper:** поскольку приложение не подписано платным сертификатом
-   Apple Developer ID, при первом запуске macOS покажет предупреждение
-   «нельзя открыть, разработчик не подтверждён». Обойти один раз на каждом
-   Mac, куда копируете `.app`:
-   - правый клик по `ytdl_gui.app` → «Открыть» → ещё раз «Открыть» в диалоге,
-     **или**
-   - в Терминале: `xattr -cr ./ytdl_gui.app`, после чего открывать обычным
-     двойным кликом.
-
-Собранный `ytdl_gui.app` работает только на той же архитектуре Mac, на
-которой собран (Apple Silicon/M-серия или Intel) — если нужно раздавать
-на оба типа, собирать `.app` придётся на компьютере каждого типа отдельно.
-
-### Вручную (любая ОС)
+### Manual install (any OS)
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Плюс отдельно поставить `ffmpeg` (нужен для склейки видео+аудио и
-конвертации в mp3):
+Plus install `ffmpeg` separately (needed for merging video+audio and mp3
+conversion):
 - macOS: `brew install ffmpeg`
 - Windows: `winget install -e --id Gyan.FFmpeg`
 
-## Использование
+## Usage
 
-### Графический интерфейс
+### Graphical interface
 
 ```bash
 python3 ytdl_gui.py      # macOS/Linux
 python ytdl_gui.py       # Windows
 ```
 
-1. Вставить ссылку на видео в поле ввода.
-2. Нажать «Получить форматы».
-3. Выбрать режим: «Видео (+аудио)» или «Только аудио → mp3».
-4. Выбрать нужное разрешение/битрейт в выпадающем списке.
-5. При желании сменить папку сохранения кнопкой «Выбрать...».
-6. Нажать «Скачать».
+1. Paste the video link into the input field.
+2. Click "Fetch formats".
+3. Choose a mode: "Video (+ audio)" or "Audio only -> mp3".
+4. Pick the desired resolution/bitrate from the dropdown.
+5. Optionally change the save folder with the "Choose..." button.
+6. Click "Download".
 
-Для видео к выбранному разрешению всегда автоматически подклеивается
-лучшее доступное аудио. Для аудио — при любом выбранном битрейте файл
-конвертируется в **mp3** через ffmpeg.
+For video, the best available audio is always attached automatically to
+the chosen resolution. For audio, whatever bitrate you pick is converted to
+**mp3** via ffmpeg.
 
-### Консоль
+### Command line
 
 ```bash
-ytdl "<ссылка>"                  # интерактивный выбор формата
-ytdl "<ссылка>" -o ~/Downloads   # сохранить в указанную папку
-ytdl "<ссылка>" --best           # сразу лучшее качество без выбора
-ytdl "<ссылка>" --audio-only     # сразу только аудио → mp3
-ytdl "<ссылка>" -f 137           # скачать конкретный ID формата напрямую
+ytdl "<link>"                  # interactive format selection
+ytdl "<link>" -o ~/Downloads   # save to a specific folder
+ytdl "<link>" --best           # best quality right away, no prompt
+ytdl "<link>" --audio-only     # audio only right away -> mp3
+ytdl "<link>" -f 137           # download a specific format ID directly
 ```
 
-Если команда `ytdl` не найдена — можно запускать напрямую:
-`python3 ytdl.py "<ссылка>"` (или `python` на Windows).
+If the `ytdl` command isn't found, run the script directly:
+`python3 ytdl.py "<link>"` (or `python` on Windows).
 
-**Важно:** ссылку всегда берите в кавычки — иначе символы `&`, `?`, `=`
-могут быть неверно интерпретированы оболочкой (особенно в zsh на macOS).
+**Important:** always wrap the link in quotes — otherwise characters like
+`&`, `?`, `=` may be misinterpreted by the shell (especially in zsh on
+macOS).
 
-## Требования
+## Requirements
 
 - Python 3.8+
-- ffmpeg (склейка видео/аудио, конвертация в mp3)
-- `yt-dlp`, `customtkinter` (ставятся автоматически install-скриптами или
-  вручную через `requirements.txt`)
+- ffmpeg (merging video/audio, mp3 conversion)
+- `yt-dlp`, `customtkinter` (installed automatically by the install scripts,
+  or manually via `requirements.txt`)
 
-## Частые проблемы
+## Troubleshooting
 
-- **`zsh: no matches found: https://...`** — ссылка не в кавычках, см. выше.
-- **Ошибка при слиянии видео и аудио** — не установлен ffmpeg или он не в
-  PATH; переустановите через install-скрипт или вручную.
-- **`winget` не найден (Windows)** — установите «App Installer» из Microsoft
-  Store, затем запустите `install_windows.ps1` снова.
-- **Homebrew не найден (macOS)** — установите с https://brew.sh, затем
-  запустите `install_macos.sh` снова.
+- **`zsh: no matches found: https://...`** — the link isn't quoted, see
+  above.
+- **Error while merging video and audio** — ffmpeg isn't installed or isn't
+  on PATH; reinstall via the install script or manually.
+- **`winget` not found (Windows)** — install "App Installer" from the
+  Microsoft Store, then run `install_windows.ps1` again.
+- **Homebrew not found (macOS)** — install it from https://brew.sh, then
+  run `install_macos.sh` again.

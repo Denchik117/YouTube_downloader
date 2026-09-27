@@ -13,35 +13,35 @@ function Test-Command($name) {
     return [bool](Get-Command $name -ErrorAction SilentlyContinue)
 }
 
-Write-Host "== Проверка winget ==" -ForegroundColor Cyan
+Write-Host "== Checking winget ==" -ForegroundColor Cyan
 if (-not (Test-Command "winget")) {
-    Write-Host "winget не найден. Установите его из Microsoft Store (App Installer) и запустите скрипт снова." -ForegroundColor Red
+    Write-Host "winget not found. Install it from the Microsoft Store (App Installer) and run this script again." -ForegroundColor Red
     exit 1
 }
 
-Write-Host "== Проверка Python ==" -ForegroundColor Cyan
+Write-Host "== Checking Python ==" -ForegroundColor Cyan
 if (-not (Test-Command "python")) {
-    Write-Host "Устанавливаю Python..."
+    Write-Host "Installing Python..."
     winget install -e --id Python.Python.3.12
-    Write-Host "Python установлен. Перезапустите PowerShell и запустите этот скрипт ещё раз, чтобы PATH обновился." -ForegroundColor Yellow
+    Write-Host "Python installed. Restart PowerShell and run this script again so PATH refreshes." -ForegroundColor Yellow
     exit 0
 } else {
-    Write-Host "Python уже установлен."
+    Write-Host "Python is already installed."
 }
 
-Write-Host "== Проверка ffmpeg (нужен для склейки видео/аудио и конвертации в mp3) ==" -ForegroundColor Cyan
+Write-Host "== Checking ffmpeg (needed for merging video/audio and mp3 conversion) ==" -ForegroundColor Cyan
 if (-not (Test-Command "ffmpeg")) {
-    Write-Host "Устанавливаю ffmpeg..."
+    Write-Host "Installing ffmpeg..."
     winget install -e --id Gyan.FFmpeg
-    Write-Host "ffmpeg установлен. Перезапустите PowerShell, если команда ffmpeg не находится." -ForegroundColor Yellow
+    Write-Host "ffmpeg installed. Restart PowerShell if the ffmpeg command isn't found." -ForegroundColor Yellow
 } else {
-    Write-Host "ffmpeg уже установлен."
+    Write-Host "ffmpeg is already installed."
 }
 
-Write-Host "== Установка зависимостей Python ==" -ForegroundColor Cyan
+Write-Host "== Installing Python dependencies ==" -ForegroundColor Cyan
 python -m pip install --user -U -r "$ScriptDir\requirements.txt"
 
-Write-Host "== Создание команды 'ytdl' ==" -ForegroundColor Cyan
+Write-Host "== Creating the 'ytdl' command ==" -ForegroundColor Cyan
 $BinDir = "$env:LOCALAPPDATA\ytdl"
 New-Item -ItemType Directory -Force -Path $BinDir | Out-Null
 
@@ -55,14 +55,14 @@ python "$ScriptDir\ytdl.py" %*
 $UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($UserPath -notlike "*$BinDir*") {
     [Environment]::SetEnvironmentVariable("Path", "$UserPath;$BinDir", "User")
-    Write-Host "Папка $BinDir добавлена в PATH." -ForegroundColor Yellow
+    Write-Host "Added $BinDir to PATH." -ForegroundColor Yellow
 }
 
 Write-Host ""
-Write-Host "Готово! Откройте новое окно PowerShell и запускайте:" -ForegroundColor Green
+Write-Host "Done! Open a new PowerShell window and run:" -ForegroundColor Green
 Write-Host '    ytdl "https://www.youtube.com/watch?v=..."'
 Write-Host ""
-Write-Host "Примеры:"
-Write-Host '    ytdl "<ссылка>" -o C:\Users\%USERNAME%\Downloads'
-Write-Host '    ytdl "<ссылка>" --best'
-Write-Host '    ytdl "<ссылка>" --audio-only'
+Write-Host "Examples:"
+Write-Host '    ytdl "<link>" -o C:\Users\%USERNAME%\Downloads'
+Write-Host '    ytdl "<link>" --best'
+Write-Host '    ytdl "<link>" --audio-only'
